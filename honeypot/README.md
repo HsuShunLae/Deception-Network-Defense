@@ -9,6 +9,7 @@ The honeypot is exposed at **192.168.229.128:8080** and logs attacker interactio
 - Ubuntu 22.04 (or similar Linux distribution)
 - Root/sudo privileges
 - Internet access to pull Docker images
+- Don't forget to change your IP when implementing honeypot
 
 ---
 
@@ -94,6 +95,5 @@ make all
 ```
 
 This will install dependencies, build the honeypot image, and run the container in one click.
-Don't forget to change your IP when implementing honeypot.
 
 ---
