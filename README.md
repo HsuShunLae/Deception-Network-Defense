@@ -36,44 +36,95 @@ The lab uses a three-zone design (**WAN – DMZ – LAN**) with a virtual gatewa
 
 ## Quick Start
 
-### 1) Spin up the honeypot (DMZ)
+### 1) **Honeypot (DMZ)**
+   - Deploy the web honeypot and expose `DMZ:8080`.
+   - See: [`honeypot/README.md`](honeypot/README.md)  
+   - One-liner:
+     
+     ```
+     cd honeypot && make all
+     ```
+### 2) **Wazuh (SIEM on LAN)**
+   - Import the **Wazuh OVA**, set the LAN IP, then enroll agents.
+   - See: [`wazuh/README.md`](wazuh/README.md)
+
+### 3) **Suricata (IDS on LAN)**
+   - Install Suricata in **IDS mode**, enable **EVE JSON**, and point logs to Wazuh.
+   - See: [`suricata/README.md`](suricata/README.md)
+
+### 4) **AI Agent**
+   - Local DistilBERT classifier watches Suricata alerts and (optionally) blocks IPs.
+   - See: [`AI-Agent/README.md`](AI-Agent/README.md)
+
+### 5) **Vulnerable Web App**
+   - For local vulnerable web server, follow the minimal pointers.
+   - See: [`vulnerable-web-app/README.md`](vulnerable-web-app/README.md)
+
+---
+
+## Configure Firewall
+
 ```
-git clone https://github.com/HsuShunLae/Deception-Network-Defense.git
-cd Deception-Network-Defense/honeypot
-make all
+# Reset rules
+sudo iptables -F
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+
+# Default policies
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+sudo iptables -P OUTPUT ACCEPT
+
+# Allow loopback & established connections
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+sudo iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH on gateway (LAN only)
+sudo iptables -A INPUT -i ens33 -p tcp --dport 22 -j ACCEPT
+
+# DNAT: forward WAN:80 to honeypot (DMZ:8080)
+sudo iptables -t nat -A PREROUTING -i ens37 -p tcp --dport 80 \
+  -j DNAT --to-destination 192.168.229.128:8080
+
+# Allow forwarded WAN → DMZ traffic to honeypot
+sudo iptables -A FORWARD -i ens37 -o ens38 -p tcp -d 192.168.229.128 --dport 8080 \
+  -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+
+# Wazuh agent traffic from LAN
+sudo iptables -A INPUT -i ens33 -p udp --dport 1514 -j ACCEPT
+sudo iptables -A INPUT -i ens33 -p tcp --dport 1515 -j ACCEPT
+sudo iptables -A INPUT -i ens33 -p tcp --dport 5601 -j ACCEPT
+
+# NAT masquerade for outbound traffic via WAN
+sudo iptables -t nat -A POSTROUTING -o ens37 -j MASQUERADE
+
+# Enable IP forwarding (temporary until reboot)
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 ```
 
-The container exposes HTTP internally and is mapped to `192.168.229.128:8080`. Use gateway DNAT to allow `WAN:80` → `DMZ:8080`.
+This configuration does the following:
 
-### 2) Configure Wazuh agent (on the Ubuntu gateway)
-See `wazuh/ossec-agent.conf.snippet.xml` and add monitored log paths for the honeypot:
-- `/var/log/struts-honeypot/access.log`
-- `/var/log/struts-honeypot/error.log`
+  - Drops everything by default (INPUT, FORWARD).
+  - Allows SSH from LAN, Wazuh traffic, and DNAT from WAN → Honeypot.
+  - Applies NAT masquerading for outbound DMZ/WAN traffic.
 
-### 3) Enable Suricata (IDS) on LAN
-Install Suricata on the LAN sensor host and apply the sample `suricata/suricata.yaml`. Ensure EVE JSON writes to a path Wazuh can ingest (e.g., via Filebeat or Wazuh agent).
-
-### 4) Generate traffic from WAN (Kali)
+## Generate traffic from WAN attacker (Kali)
 - Recon: `nikto -h http://<WAN_ip>/`
 - Exploit demo: Use the StrutsHoneypot test scripts `./test-struts2.py http://<WAN_ip>`.
 
-### 5) Investigate in Wazuh
+## Investigate in Wazuh
 - Dashboards: alerts, HTTP activity, and archive indices for full log search.
 - Build DQL/Kibana queries around honeypot fields to isolate patterns.
-
-## Repo Map
-
-- `honeypots/strutshoneypot/` – Dockerized web honeypot, Apache-style logs
-- `suricata/` – IDS configuration (EVE JSON, AF_PACKET example)
-- `wazuh/` – Agent config snippet + index/dashboards guidance
-- `network/` – iptables NAT/forwarding examples for WAN/DMZ/LAN
-- `docs/` – Executive summary, methodology, demo runbook, and threat model
-- `ai-engine/` – Placeholder for future policy/ML-driven response
 
 ## Safety & Scope
 
 - This is a **interactive lab**. Keep it isolated.
 - The honeypot intentionally attracts hostile scans/traffic—never expose without proper containment.
+
+## Demo Video
+
+The demonstration video for this lab can be accessed [here](https://www.youtube.com/watch?v=zQeACGav-rw).
 
 ## License
 
