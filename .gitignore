@@ -1,0 +1,51 @@
+# ============================
+# General system files
+# ============================
+.DS_Store
+Thumbs.db
+
+# ============================
+# Python (AI agent scripts)
+# ============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+*.egg-info/
+
+# ============================
+# Logs (honeypot, Suricata, AI agent, Wazuh)
+# ============================
+*.log
+logs/
+*.json
+/var/log/
+/log/
+/tmp/
+
+# ============================
+# Config / secrets (keep local only)
+# ============================
+.env
+*.secret
+*.key
+*.pem
+
+# ============================
+# Docker / VM artifacts
+# ============================
+*.pid
+*.sock
+*.tar
+*.ova
+*.vdi
+*.vmdk
+
+# ============================
+# IDE / Editor settings
+# ============================
+.vscode/
+.idea/
+*.swp
