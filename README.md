@@ -37,13 +37,13 @@ The lab uses a three-zone design (**WAN – DMZ – LAN**) with a virtual gatewa
 ## Quick Start
 
 ### 1) Spin up the honeypot (DMZ)
-```bash
-cd honeypots/strutshoneypot
-cp .env.example .env
-docker compose up -d --build
+```
+git clone https://github.com/HsuShunLae/Deception-Network-Defense.git
+cd Deception-Network-Defense/honeypot
+make all
 ```
 
-The container exposes HTTP internally and is mapped to `192.168.229.128:8080`. Use your gateway DNAT to allow `WAN:80` → `DMZ:8080`.
+The container exposes HTTP internally and is mapped to `192.168.229.128:8080`. Use gateway DNAT to allow `WAN:80` → `DMZ:8080`.
 
 ### 2) Configure Wazuh agent (on the Ubuntu gateway)
 See `wazuh/ossec-agent.conf.snippet.xml` and add monitored log paths for the honeypot:
@@ -55,7 +55,7 @@ Install Suricata on the LAN sensor host and apply the sample `suricata/suricata.
 
 ### 4) Generate traffic from WAN (Kali)
 - Recon: `nikto -h http://<WAN_ip>/`
-- Exploit demo: Use the StrutsHoneypot test scripts.
+- Exploit demo: Use the StrutsHoneypot test scripts `./test-struts2.py http://<WAN_ip>`.
 
 ### 5) Investigate in Wazuh
 - Dashboards: alerts, HTTP activity, and archive indices for full log search.
@@ -72,9 +72,8 @@ Install Suricata on the LAN sensor host and apply the sample `suricata/suricata.
 
 ## Safety & Scope
 
-- This is a **lab**. Keep it isolated.
+- This is a **interactive lab**. Keep it isolated.
 - The honeypot intentionally attracts hostile scans/traffic—never expose without proper containment.
-- Credentials and secrets should be stored outside VCS (`.env`).
 
 ## License
 
