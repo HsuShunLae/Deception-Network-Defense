@@ -1,0 +1,14 @@
+[Unit]
+Description=AI Suricata Log Analyzer and IP Blocker
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/ai_suricata_blocker.py
+Restart=always
+User=root
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ai_suricata_blocker
+
+[Install]
+WantedBy=multi-user.target
