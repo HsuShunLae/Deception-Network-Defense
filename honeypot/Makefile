@@ -18,7 +18,8 @@ build:
 	cd StrutsHoneypot && sudo docker build -t $(IMAGE) strutspot_docker/
 
 run:
-	sudo docker run -d --name $(NAME) -p $(IP):$(PORT):80 $(IMAGE)
+	sudo mkdir /var/log/struts-honeypot
+	sudo docker run -d --name $(NAME) -p $(IP):$(PORT):80 -v /var/log/struts-honeypot:/var/log/apache2 $(IMAGE)
 
 stop:
 	sudo docker stop $(NAME) || true
