@@ -22,12 +22,17 @@ Lab demonstrating **proactive deception** (web honeypot in DMZ), **reactive dete
                → AI module 
 ```
 
+## Network Topology
+
+The lab uses a three-zone design (**WAN – DMZ – LAN**) with a virtual gateway providing strict inter-zone filtering.
+
+![Network topology](img/Network-Topology.png)
 
 - **Honeypot:** StrutsHoneypot container bound to `192.168.229.128:8080` in DMZ.
 - **External access:** DNAT from `WAN:tcp/80` to DMZ:8080.
 - **Wazuh:** Official OVA (manager/indexer/dashboards) on LAN.
 - **Suricata:** IDS mode on LAN interface with EVE JSON enabled.
-- **Isolation:** Strict inter-zone firewall; only required flows permitted.
+- **Isolation:** Strict inter-zone firewall. Only required flows permitted.
 
 ## Quick Start
 
