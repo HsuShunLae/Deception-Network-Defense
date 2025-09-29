@@ -47,6 +47,7 @@ This will download dependencies and build the honeypot container image.
 
 ### Step 4. Run the Honeypot
 ```
+sudo mkdir /var/log/struts-honeypot
 sudo docker run -d --name honeypot -p 192.168.229.128:8080:80 -v /var/log/struts-honeypot:/var/log/apache2 struts_honeypot
 ```
 
